@@ -57,7 +57,7 @@ void initializeProgram()
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+//	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
 
