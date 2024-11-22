@@ -1,10 +1,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <iostream>
 using namespace std;
+
+GLuint vbo = 0;
+GLuint vao = 0;
+GLuint vs;
+GLuint fs;
+GLuint shader_programm;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -20,8 +23,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 void initializeProgram()
 {
-	GLuint vbo = 0;
-	GLuint vao = 0;
 	float modelData[] = {
 		0.0f, 0.5f, 0.0f,
 		0.0f, 1.0f, 0.0f,
@@ -47,9 +48,6 @@ void initializeProgram()
 		" frag_colour = vec4(color,1.0);"
 		"}";
 
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	GLuint shader_programm = glCreateProgram();
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(float), modelData, GL_STATIC_DRAW);
@@ -57,17 +55,21 @@ void initializeProgram()
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-//	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	vs = glCreateShader(GL_VERTEX_SHADER);
+	fs = glCreateShader(GL_FRAGMENT_SHADER);
 
 	glShaderSource(vs, 1, &vertex_shader, NULL);
 	glCompileShader(vs);
 	glShaderSource(fs, 1, &fragment_shader, NULL);
 	glCompileShader(fs);
+
+	shader_programm = glCreateProgram();
 
 	glAttachShader(shader_programm, fs);
 	glAttachShader(shader_programm, vs);
@@ -100,6 +102,16 @@ void processInput(GLFWwindow* window)
 	}
 }
 
+void cleanup()
+{
+	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1, &vao);
+	glDeleteShader(vs);
+	glDeleteShader(fs);
+	glDeleteProgram(shader_programm);
+}
+
+
 int main(int argc, char** argv)
 {
 	glfwInit();
@@ -131,6 +143,7 @@ int main(int argc, char** argv)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	cleanup();
 	glfwTerminate();
 	return 0;
 }
