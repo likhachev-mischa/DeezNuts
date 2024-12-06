@@ -130,10 +130,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="Shaders\frag.frag" />
+    <None Include="Shaders\vert.vert" />
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Affine.cpp" />
+    <ClCompile Include="File.cpp" />
+    <ClCompile Include="GLIndexBuffer.cpp" />
+    <ClCompile Include="GLModel.cpp" />
+    <ClCompile Include="GLShader.cpp" />
+    <ClCompile Include="GLVertexBuffer.cpp" />
     <ClCompile Include="Source.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Affine.hpp" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="File.hpp" />
+    <ClInclude Include="GLIndexBuffer.h" />
+    <ClInclude Include="GLModel.h" />
+    <ClInclude Include="GLShader.h" />
+    <ClInclude Include="GLVertexBuffer.h" />
+    <ClInclude Include="Shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Models\cube.txt" />
+    <Text Include="Models\test0.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

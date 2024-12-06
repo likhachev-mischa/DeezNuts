@@ -1,13 +1,17 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
-using namespace std;
+#include <vector>
 
-GLuint vbo = 0;
-GLuint vao = 0;
-GLuint vs;
-GLuint fs;
-GLuint shader_programm;
+#include <glad/glad.h>
+
+#include <GLFW/glfw3.h>
+
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "Affine.hpp"
+#include "File.hpp"
+#include "GLModel.h"
+
+using namespace std;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -19,72 +23,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 		break;
 	}
-}
-
-void initializeProgram()
-{
-	float modelData[] = {
-		0.0f, 0.5f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		0.0f, 0.0f, 1.0f
-	};
-	const char* vertex_shader =
-		"#version 400\n"
-		"in vec3 in_position;"
-		"in vec3 in_color;"
-		"out vec3 color;"
-		"void main() {"
-		" gl_Position = vec4(in_position, 1.0);"
-		" color = in_color;"
-		"}";
-	const char* fragment_shader =
-		"#version 400\n"
-		"in vec3 color;"
-		"out vec4 frag_colour;"
-		"void main() {"
-		" frag_colour = vec4(color,1.0);"
-		"}";
-
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(float), modelData, GL_STATIC_DRAW);
-
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	vs = glCreateShader(GL_VERTEX_SHADER);
-	fs = glCreateShader(GL_FRAGMENT_SHADER);
-
-	glShaderSource(vs, 1, &vertex_shader, NULL);
-	glCompileShader(vs);
-	glShaderSource(fs, 1, &fragment_shader, NULL);
-	glCompileShader(fs);
-
-	shader_programm = glCreateProgram();
-
-	glAttachShader(shader_programm, fs);
-	glAttachShader(shader_programm, vs);
-
-	glBindAttribLocation(shader_programm, 0, "in_position");
-	glBindAttribLocation(shader_programm, 1, "in_color");
-
-	glLinkProgram(shader_programm);
-	glUseProgram(shader_programm);
-}
-
-void renderPrimitive()
-{
-	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -101,16 +39,6 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 	}
 }
-
-void cleanup()
-{
-	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &vao);
-	glDeleteShader(vs);
-	glDeleteShader(fs);
-	glDeleteProgram(shader_programm);
-}
-
 
 int main(int argc, char** argv)
 {
@@ -133,17 +61,34 @@ int main(int argc, char** argv)
 	}
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	initializeProgram();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	std::vector<glm::vec3> vertices;
+	std::vector<int> indices;
+	readModelInfoFile("./Models/cube.txt", vertices, indices);
+	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f),
+	                             glm::vec3(0.0f, 0.0f, 0.0f),
+	                             glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f),
+	                                        8.f / 6.f,
+	                                        0.1f,
+	                                        100.0f);
+	GLModel model(vertices, indices);
+	model.viewMatrix = view;
+	model.projectionMatrix = projection;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		renderPrimitive();
+		model.modelMatrix *= affine::rotationY(0.005f);
+		model.modelMatrix *= affine::rotationX(0.005f);
+		model.draw();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	cleanup();
 	glfwTerminate();
 	return 0;
 }
